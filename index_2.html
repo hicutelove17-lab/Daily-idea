@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>오늘의 앱 아이디어</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.10.0/tabler-icons.min.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, 'Noto Sans KR', BlinkMacSystemFont, sans-serif;
+    background: #F7F6F2; color: #1a1a18; min-height: 100vh; padding: 2rem 1rem;
+  }
+  .container { max-width: 680px; margin: 0 auto; }
+  .top-bar { margin-bottom: 1.5rem; }
+  .top-bar h1 { font-size: 24px; font-weight: 700; margin-bottom: 2px; }
+  .top-bar .subtitle { font-size: 13px; color: #888780; }
+
+  .btn-primary {
+    font-size: 13px; padding: 8px 16px; font-weight: 600;
+    background: #1a1a18; color: #F7F6F2; border: none; border-radius: 8px;
+    cursor: pointer; white-space: nowrap; transition: opacity 0.15s;
+  }
+  .btn-primary:hover { opacity: 0.82; }
+  .btn-secondary {
+    font-size: 13px; padding: 8px 13px; background: #fff; color: #1a1a18;
+    border: 0.5px solid #D3D1C7; border-radius: 8px; cursor: pointer;
+    transition: background 0.15s; white-space: nowrap;
+  }
+  .btn-secondary:hover { background: #F1EFE8; }
+
+  .tabs { display: flex; border-bottom: 0.5px solid #D3D1C7; margin-bottom: 1.5rem; }
+  .tab {
+    font-size: 13px; font-weight: 500; padding: 8px 18px; cursor: pointer;
+    color: #888780; border-bottom: 2px solid transparent; background: none;
+    border-top: none; border-left: none; border-right: none; transition: color 0.15s;
+  }
+  .tab.active { color: #1a1a18; border-bottom: 2px solid #1a1a18; }
+
+  .loading { display: none; text-align: center; padding: 4rem 0; }
+  .loading p { color: #888780; font-size: 14px; margin-bottom: 14px; }
+  .dots { display: flex; justify-content: center; gap: 6px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: #B4B2A9; animation: pulse 1.2s ease-in-out infinite; }
+  .dot:nth-child(2) { animation-delay: 0.3s; }
+  .dot:nth-child(3) { animation-delay: 0.6s; }
+  @keyframes pulse { 0%,100%{opacity:0.3;transform:scale(0.75)} 50%{opacity:1;transform:scale(1)} }
+
+  .idea-card { display: none; background: #fff; border: 0.5px solid #D3D1C7; border-radius: 14px; padding: 1.5rem; margin-bottom: 1rem; }
+  .card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; }
+  .badges { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .badge { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 99px; }
+  .time-label { font-size: 12px; color: #888780; margin-top: 4px; }
+  .idea-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .idea-tagline { font-size: 14px; color: #5F5E5A; line-height: 1.65; margin-bottom: 1.25rem; }
+  .section { border-top: 0.5px solid #E8E6E0; padding-top: 1rem; margin-bottom: 1rem; }
+  .section-label { font-size: 11px; font-weight: 700; color: #888780; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+  .features { padding-left: 1.2rem; font-size: 14px; line-height: 1.9; color: #2C2C2A; }
+  .section p { font-size: 14px; line-height: 1.65; color: #2C2C2A; }
+
+  .action-row { display: none; flex-wrap: wrap; gap: 8px; margin-bottom: 2rem; }
+  .action-row .btn-primary { flex: 1; min-width: 140px; }
+  .action-row .btn-secondary { flex: 1; min-width: 120px; }
+
+  .history-panel { display: none; }
+  .history-empty { text-align: center; padding: 3rem 0; color: #B4B2A9; font-size: 14px; }
+  .history-empty i { font-size: 36px; display: block; margin-bottom: 10px; }
+  .history-item { background: #fff; border: 0.5px solid #D3D1C7; border-radius: 10px; padding: 14px 16px; margin-bottom: 8px; cursor: pointer; transition: background 0.15s; }
+  .history-item:hover { background: #F7F6F2; }
+  .history-item.today { border-color: #1a1a18; border-width: 1.5px; }
+  .history-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+  .history-date { font-size: 12px; color: #888780; }
+  .history-title { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
+  .history-tagline { font-size: 13px; color: #5F5E5A; line-height: 1.5; }
+
+  .detail-panel { display: none; }
+  .detail-back { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #888780; cursor: pointer; margin-bottom: 1rem; background: none; border: none; padding: 0; }
+  .detail-back:hover { color: #1a1a18; }
+
+  .empty-state { text-align: center; padding: 4rem 0; color: #B4B2A9; font-size: 14px; }
+  .empty-state i { font-size: 40px; display: block; margin-bottom: 12px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="top-bar">
+    <h1>오늘의 앱 아이디어 ✦</h1>
+    <p class="subtitle" id="date-display">—</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('today', this)">오늘</button>
+    <button class="tab" onclick="switchTab('history', this)" id="history-tab-btn">히스토리</button>
+  </div>
+
+  <div id="today-panel">
+    <div class="loading" id="loading-state">
+      <p id="loading-msg">아이디어를 불러오는 중...</p>
+      <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+    </div>
+
+    <div class="idea-card" id="idea-card">
+      <div class="card-header">
+        <div class="badges">
+          <span class="badge" id="idea-category-badge"></span>
+          <span class="badge" id="idea-difficulty-badge"></span>
+        </div>
+        <span class="time-label" id="idea-time"></span>
+      </div>
+      <div class="idea-title" id="idea-title"></div>
+      <div class="idea-tagline" id="idea-tagline"></div>
+      <div class="section"><div class="section-label">핵심 기능</div><ul class="features" id="idea-features"></ul></div>
+      <div class="section"><div class="section-label">수익화 아이디어</div><p id="idea-monetize"></p></div>
+      <div class="section"><div class="section-label">왜 지금인가?</div><p id="idea-why"></p></div>
+    </div>
+
+    <div class="action-row" id="action-row">
+      <button class="btn-primary" onclick="buildThis()">이걸로 만들어줘 ↗</button>
+    </div>
+
+    <div class="empty-state" id="empty-state" style="display:none;">
+      <i class="ti ti-bulb"></i>
+      <p id="empty-msg">아직 오늘의 아이디어가 없습니다</p>
+    </div>
+  </div>
+
+  <div id="history-panel" class="history-panel">
+    <div class="history-empty" id="history-empty" style="display:none;">
+      <i class="ti ti-calendar"></i><p>아직 기록된 아이디어가 없습니다</p>
+    </div>
+    <div id="history-list"></div>
+  </div>
+
+  <div id="detail-panel" class="detail-panel">
+    <button class="detail-back" onclick="closeDetail()"><i class="ti ti-arrow-left"></i> 히스토리로 돌아가기</button>
+    <div class="idea-card" id="detail-card" style="display:block;">
+      <div class="card-header">
+        <div class="badges">
+          <span class="badge" id="d-category-badge"></span>
+          <span class="badge" id="d-difficulty-badge"></span>
+        </div>
+        <span class="time-label" id="d-time"></span>
+      </div>
+      <div class="idea-title" id="d-title"></div>
+      <div class="idea-tagline" id="d-tagline"></div>
+      <div class="section"><div class="section-label">핵심 기능</div><ul class="features" id="d-features"></ul></div>
+      <div class="section"><div class="section-label">수익화 아이디어</div><p id="d-monetize"></p></div>
+      <div class="section"><div class="section-label">왜 지금인가?</div><p id="d-why"></p></div>
+    </div>
+    <div style="display:flex; gap:8px; margin-bottom:2rem;">
+      <button class="btn-primary" onclick="buildFromDetail()">이걸로 만들어줘 ↗</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DATA_URL = 'ideas.json';
+const categoryMap = {
+  productivity: { label: '생산성',       bg: '#E6F1FB', color: '#0C447C' },
+  lifestyle:    { label: '라이프스타일', bg: '#EAF3DE', color: '#27500A' },
+  finance:      { label: '금융/투자',    bg: '#FAEEDA', color: '#633806' },
+  social:       { label: '소셜',         bg: '#FBEAF0', color: '#72243E' },
+  tools:        { label: '도구/유틸리티',bg: '#EEEDFE', color: '#3C3489' },
+};
+const diffMap = {
+  easy:   { label: '쉬움 ●○○', bg: '#EAF3DE', color: '#27500A' },
+  medium: { label: '보통 ●●○', bg: '#FAEEDA', color: '#633806' },
+  hard:   { label: '도전 ●●●', bg: '#FAECE7', color: '#711B0B' },
+};
+
+let ideas = [];      // 전체 아이디어 배열 (최신순)
+let detailIdea = null;
+
+const today = new Date();
+document.getElementById('date-display').textContent =
+  today.toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric', weekday:'long' });
+
+function todayKey() { return new Date().toISOString().slice(0,10); }
+
+(async function init() {
+  document.getElementById('loading-state').style.display = 'block';
+  try {
+    const res = await fetch(DATA_URL + '?t=' + Date.now());  // 캐시 방지
+    if (!res.ok) throw new Error('not found');
+    const data = await res.json();
+    // data가 배열이거나 {ideas:[...]} 형태 둘 다 허용
+    ideas = Array.isArray(data) ? data : (data.ideas || []);
+    // 날짜 내림차순 정렬
+    ideas.sort((a,b) => (b.date || '').localeCompare(a.date || ''));
+  } catch(e) {
+    ideas = [];
+  }
+  document.getElementById('loading-state').style.display = 'none';
+
+  const todays = ideas.find(i => i.date === todayKey()) || ideas[0];
+  if (todays) {
+    renderIdea(todays);
+  } else {
+    document.getElementById('empty-state').style.display = 'block';
+  }
+  updateHistoryBadge();
+})();
+
+function switchTab(tab, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('today-panel').style.display   = tab === 'today'   ? 'block' : 'none';
+  document.getElementById('history-panel').style.display = tab === 'history' ? 'block' : 'none';
+  document.getElementById('detail-panel').style.display  = 'none';
+  if (tab === 'history') renderHistory();
+}
+
+function renderIdea(idea) {
+  const catInfo = categoryMap[idea.category] || categoryMap.tools;
+  const diffInfo = diffMap[idea.difficulty] || diffMap.medium;
+  const cb = document.getElementById('idea-category-badge');
+  cb.textContent = catInfo.label; cb.style.background = catInfo.bg; cb.style.color = catInfo.color;
+  const db = document.getElementById('idea-difficulty-badge');
+  db.textContent = diffInfo.label; db.style.background = diffInfo.bg; db.style.color = diffInfo.color;
+  document.getElementById('idea-time').textContent = '⏱ ' + (idea.buildTime || '');
+  document.getElementById('idea-title').textContent = idea.title;
+  document.getElementById('idea-tagline').textContent = idea.tagline;
+  document.getElementById('idea-features').innerHTML = (idea.features||[]).map(f => `<li>${f}</li>`).join('');
+  document.getElementById('idea-monetize').textContent = idea.monetize || '';
+  document.getElementById('idea-why').textContent = idea.why || '';
+  document.getElementById('idea-card').style.display = 'block';
+  document.getElementById('action-row').style.display = 'flex';
+  document.getElementById('empty-state').style.display = 'none';
+}
+
+function updateHistoryBadge() {
+  const btn = document.getElementById('history-tab-btn');
+  btn.textContent = ideas.length > 0 ? `히스토리 (${ideas.length})` : '히스토리';
+}
+
+function renderHistory() {
+  if (ideas.length === 0) {
+    document.getElementById('history-empty').style.display = 'block';
+    document.getElementById('history-list').innerHTML = '';
+    return;
+  }
+  document.getElementById('history-empty').style.display = 'none';
+  const tKey = todayKey();
+  document.getElementById('history-list').innerHTML = ideas.map((idea, idx) => {
+    const catInfo = categoryMap[idea.category] || categoryMap.tools;
+    const isToday = idea.date === tKey;
+    const dateLabel = isToday ? '오늘' : formatDateKey(idea.date);
+    return `<div class="history-item${isToday?' today':''}" onclick="openDetail(${idx})">
+      <div class="history-top">
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+          <span class="badge" style="background:${catInfo.bg};color:${catInfo.color};">${catInfo.label}</span>
+          ${isToday ? '<span class="badge" style="background:#1a1a18;color:#F7F6F2;">오늘</span>' : ''}
+        </div>
+        <span class="history-date">${dateLabel}</span>
+      </div>
+      <div class="history-title">${idea.title}</div>
+      <div class="history-tagline">${idea.tagline}</div>
+    </div>`;
+  }).join('');
+}
+
+function formatDateKey(k) {
+  if (!k) return '';
+  const d = new Date(k + 'T00:00:00');
+  return d.toLocaleDateString('ko-KR', { month:'long', day:'numeric', weekday:'short' });
+}
+
+function openDetail(idx) {
+  const idea = ideas[idx];
+  if (!idea) return;
+  detailIdea = idea;
+  document.getElementById('history-panel').style.display = 'none';
+  document.getElementById('detail-panel').style.display = 'block';
+  const catInfo = categoryMap[idea.category] || categoryMap.tools;
+  const diffInfo = diffMap[idea.difficulty] || diffMap.medium;
+  const cb = document.getElementById('d-category-badge');
+  cb.textContent = catInfo.label; cb.style.background = catInfo.bg; cb.style.color = catInfo.color;
+  const db = document.getElementById('d-difficulty-badge');
+  db.textContent = diffInfo.label; db.style.background = diffInfo.bg; db.style.color = diffInfo.color;
+  document.getElementById('d-time').textContent = '⏱ ' + (idea.buildTime || '');
+  document.getElementById('d-title').textContent = idea.title;
+  document.getElementById('d-tagline').textContent = idea.tagline;
+  document.getElementById('d-features').innerHTML = (idea.features||[]).map(f => `<li>${f}</li>`).join('');
+  document.getElementById('d-monetize').textContent = idea.monetize || '';
+  document.getElementById('d-why').textContent = idea.why || '';
+}
+
+function closeDetail() {
+  document.getElementById('detail-panel').style.display = 'none';
+  document.getElementById('history-panel').style.display = 'block';
+}
+
+function buildThis() {
+  const idea = ideas.find(i => i.date === todayKey()) || ideas[0];
+  if (idea) sendMsg(idea);
+}
+function buildFromDetail() { if (detailIdea) sendMsg(detailIdea); }
+function sendMsg(idea) {
+  const msg = `"${idea.title}" 앱을 만들어줘.\n설명: ${idea.tagline}\n핵심 기능: ${(idea.features||[]).join(', ')}`;
+  if (typeof sendPrompt === 'function') sendPrompt(msg);
+  else { navigator.clipboard.writeText(msg).then(()=>alert('아이디어가 복사되었습니다! Claude에 붙여넣어 만들어보세요.')).catch(()=>alert(msg)); }
+}
+</script>
+</body>
+</html>
