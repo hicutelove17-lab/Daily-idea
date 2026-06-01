@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>오늘의 앱 아이디어</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.10.0/tabler-icons.min.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, 'Noto Sans KR', BlinkMacSystemFont, sans-serif;
+    background: #F7F6F2;
+    color: #1a1a18;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+  .container { max-width: 680px; margin: 0 auto; }
+  h1 { font-size: 26px; font-weight: 600; margin-bottom: 4px; }
+  .subtitle { font-size: 14px; color: #888780; margin-bottom: 1.5rem; }
+
+  .controls {
+    display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 1.5rem; align-items: center;
+  }
+  select {
+    font-size: 13px; padding: 7px 12px;
+    border: 0.5px solid #D3D1C7; border-radius: 8px;
+    background: #fff; color: #1a1a18; cursor: pointer; outline: none;
+  }
+  .btn-primary {
+    font-size: 13px; padding: 8px 18px; font-weight: 600;
+    background: #1a1a18; color: #F7F6F2;
+    border: none; border-radius: 8px; cursor: pointer; transition: opacity 0.15s;
+  }
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-secondary {
+    font-size: 13px; padding: 8px 14px;
+    background: #fff; color: #1a1a18;
+    border: 0.5px solid #D3D1C7; border-radius: 8px; cursor: pointer; transition: background 0.15s;
+  }
+  .btn-secondary:hover { background: #F1EFE8; }
+
+  .loading {
+    display: none; text-align: center; padding: 4rem 0;
+  }
+  .loading p { color: #888780; font-size: 14px; margin-bottom: 14px; }
+  .dots { display: flex; justify-content: center; gap: 6px; }
+  .dot {
+    width: 7px; height: 7px; border-radius: 50%; background: #B4B2A9;
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  .dot:nth-child(2) { animation-delay: 0.3s; }
+  .dot:nth-child(3) { animation-delay: 0.6s; }
+  @keyframes pulse { 0%,100%{opacity:0.3;transform:scale(0.75)} 50%{opacity:1;transform:scale(1)} }
+
+  .idea-card {
+    display: none;
+    background: #fff; border: 0.5px solid #D3D1C7; border-radius: 14px;
+    padding: 1.5rem; margin-bottom: 1rem;
+  }
+  .card-header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 10px; margin-bottom: 1rem; flex-wrap: wrap;
+  }
+  .badges { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .badge {
+    font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 99px;
+  }
+  .time-label { font-size: 12px; color: #888780; white-space: nowrap; margin-top: 4px; }
+
+  .idea-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .idea-tagline { font-size: 14px; color: #5F5E5A; line-height: 1.6; margin-bottom: 1.25rem; }
+
+  .section {
+    border-top: 0.5px solid #E8E6E0; padding-top: 1rem; margin-bottom: 1rem;
+  }
+  .section-label {
+    font-size: 11px; font-weight: 700; color: #888780;
+    text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px;
+  }
+  .features { padding-left: 1.2rem; font-size: 14px; line-height: 1.9; color: #2C2C2A; }
+  .section p { font-size: 14px; line-height: 1.65; color: #2C2C2A; }
+
+  .action-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .action-row .btn-primary { flex: 1; min-width: 140px; text-align: center; }
+  .action-row .btn-secondary { flex: 1; min-width: 140px; text-align: center; }
+  .btn-icon { font-size: 16px; padding: 8px 13px; }
+
+  .saved-section { margin-top: 2rem; }
+  .saved-header { font-size: 11px; font-weight: 700; color: #888780; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+  .saved-item {
+    background: #fff; border: 0.5px solid #D3D1C7; border-radius: 8px;
+    padding: 10px 14px; display: flex; align-items: center; justify-content: space-between;
+    gap: 8px; flex-wrap: wrap; cursor: pointer; margin-bottom: 7px; transition: background 0.15s;
+  }
+  .saved-item:hover { background: #F7F6F2; }
+  .saved-item-left { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+  .saved-item-name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .saved-time { font-size: 12px; color: #888780; white-space: nowrap; }
+
+  .empty-state {
+    text-align: center; padding: 3rem 0;
+    color: #B4B2A9; font-size: 14px;
+  }
+  .empty-icon { font-size: 36px; margin-bottom: 10px; display: block; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>오늘의 앱 아이디어 ✦</h1>
+  <p class="subtitle" id="date-display">—</p>
+
+  <div class="controls">
+    <select id="category-filter">
+      <option value="all">모든 카테고리</option>
+      <option value="productivity">생산성</option>
+      <option value="lifestyle">라이프스타일</option>
+      <option value="finance">금융/투자</option>
+      <option value="social">소셜</option>
+      <option value="tools">도구/유틸리티</option>
+    </select>
+    <button class="btn-primary" onclick="generateIdea()">아이디어 받기 ✦</button>
+  </div>
+
+  <div class="loading" id="loading-state">
+    <p id="loading-msg">AI가 아이디어를 구상하는 중...</p>
+    <div class="dots">
+      <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    </div>
+  </div>
+
+  <div class="idea-card" id="idea-card">
+    <div class="card-header">
+      <div class="badges">
+        <span class="badge" id="idea-category-badge"></span>
+        <span class="badge" id="idea-difficulty-badge"></span>
+      </div>
+      <span class="time-label" id="idea-time"></span>
+    </div>
+
+    <div class="idea-title" id="idea-title"></div>
+    <div class="idea-tagline" id="idea-tagline"></div>
+
+    <div class="section">
+      <div class="section-label">핵심 기능</div>
+      <ul class="features" id="idea-features"></ul>
+    </div>
+    <div class="section">
+      <div class="section-label">수익화 아이디어</div>
+      <p id="idea-monetize"></p>
+    </div>
+    <div class="section">
+      <div class="section-label">왜 지금인가?</div>
+      <p id="idea-why"></p>
+    </div>
+  </div>
+
+  <div class="action-row" id="action-row" style="display:none;">
+    <button class="btn-primary" onclick="buildThis()">이걸로 만들어줘 ↗</button>
+    <button class="btn-secondary" onclick="generateIdea()">다른 아이디어 보기</button>
+    <button class="btn-secondary btn-icon" onclick="saveIdea()" id="save-btn" title="저장">
+      <i class="ti ti-bookmark"></i>
+    </button>
+  </div>
+
+  <div class="saved-section" id="saved-section" style="display:none;">
+    <div class="saved-header" id="saved-header"></div>
+    <div id="saved-list"></div>
+  </div>
+
+  <div class="empty-state" id="empty-state">
+    <i class="ti ti-bulb empty-icon"></i>
+    <p>버튼을 눌러 오늘의 앱 아이디어를 받아보세요</p>
+  </div>
+</div>
+
+<script>
+let currentIdea = null;
+let savedIdeas = [];
+
+const today = new Date();
+document.getElementById('date-display').textContent =
+  today.toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric', weekday:'long' });
+
+const categoryMap = {
+  productivity: { label: '생산성', bg: '#E6F1FB', color: '#0C447C' },
+  lifestyle:    { label: '라이프스타일', bg: '#EAF3DE', color: '#27500A' },
+  finance:      { label: '금융/투자', bg: '#FAEEDA', color: '#633806' },
+  social:       { label: '소셜', bg: '#FBEAF0', color: '#72243E' },
+  tools:        { label: '도구/유틸리티', bg: '#EEEDFE', color: '#3C3489' },
+};
+const diffMap = {
+  easy:   { label: '쉬움 ●○○', bg: '#EAF3DE', color: '#27500A' },
+  medium: { label: '보통 ●●○', bg: '#FAEEDA', color: '#633806' },
+  hard:   { label: '도전 ●●●', bg: '#FAECE7', color: '#711B0B' },
+};
+
+const loadingMsgs = [
+  'AI가 아이디어를 구상하는 중...',
+  '시장 트렌드 분석 중...',
+  '기발함 지수 계산 중...',
+  '실용성 검증 중...',
+  '상업성 검토 중...',
+];
+
+async function generateIdea() {
+  const cat = document.getElementById('category-filter').value;
+  document.getElementById('idea-card').style.display = 'none';
+  document.getElementById('action-row').style.display = 'none';
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('loading-state').style.display = 'block';
+
+  let mi = 0;
+  const interval = setInterval(() => {
+    document.getElementById('loading-msg').textContent = loadingMsgs[mi % loadingMsgs.length];
+    mi++;
+  }, 1800);
+
+  const dateStr = document.getElementById('date-display').textContent;
+  const catInstruction = cat === 'all'
+    ? 'category는 productivity, lifestyle, finance, social, tools 중 하나를 랜덤으로 선택'
+    : `category는 반드시 "${cat}"`;
+
+  const prompt = `당신은 창의적인 앱 아이디어 전문가입니다. 아래 조건에 맞는 웹앱/앱 아이디어를 하나 생성하세요.
+
+조건:
+- 난이도가 너무 높지 않아 1인 개발자가 만들 수 있는 것
+- 기발하고 특별하며 실생활에 유용한 것
+- 상업적 가능성이 있는 것 (수익화 가능)
+- ${catInstruction}
+- 날짜: ${dateStr}
+
+아래 JSON 형식으로만 응답 (마크다운 없이 순수 JSON):
+{
+  "title": "앱 이름 (한국어, 짧고 임팩트있게)",
+  "tagline": "한 줄 설명 50자 이내",
+  "category": "productivity|lifestyle|finance|social|tools 중 하나",
+  "difficulty": "easy|medium|hard 중 하나",
+  "buildTime": "예상 제작 기간 (예: 1~2일, 1주일)",
+  "features": ["핵심 기능 1", "핵심 기능 2", "핵심 기능 3"],
+  "monetize": "수익화 방법 2~3문장",
+  "why": "왜 지금 이 앱이 필요한지 2~3문장"
+}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    clearInterval(interval);
+    const text = data.content.map(i => i.text || '').join('');
+    const clean = text.replace(/```json|```/g, '').trim();
+    const idea = JSON.parse(clean);
+    currentIdea = idea;
+    renderIdea(idea);
+  } catch(e) {
+    clearInterval(interval);
+    document.getElementById('loading-state').style.display = 'none';
+    document.getElementById('empty-state').style.display = 'block';
+    alert('오류가 발생했습니다. 다시 시도해주세요.');
+  }
+}
+
+function renderIdea(idea) {
+  document.getElementById('loading-state').style.display = 'none';
+
+  const catInfo = categoryMap[idea.category] || categoryMap.tools;
+  const diffInfo = diffMap[idea.difficulty] || diffMap.medium;
+
+  const catBadge = document.getElementById('idea-category-badge');
+  catBadge.textContent = catInfo.label;
+  catBadge.style.background = catInfo.bg;
+  catBadge.style.color = catInfo.color;
+
+  const diffBadge = document.getElementById('idea-difficulty-badge');
+  diffBadge.textContent = diffInfo.label;
+  diffBadge.style.background = diffInfo.bg;
+  diffBadge.style.color = diffInfo.color;
+
+  document.getElementById('idea-time').textContent = '⏱ ' + idea.buildTime;
+  document.getElementById('idea-title').textContent = idea.title;
+  document.getElementById('idea-tagline').textContent = idea.tagline;
+  document.getElementById('idea-features').innerHTML = idea.features.map(f => `<li>${f}</li>`).join('');
+  document.getElementById('idea-monetize').textContent = idea.monetize;
+  document.getElementById('idea-why').textContent = idea.why;
+
+  document.getElementById('idea-card').style.display = 'block';
+  document.getElementById('action-row').style.display = 'flex';
+  document.getElementById('save-btn').innerHTML = '<i class="ti ti-bookmark"></i>';
+}
+
+function buildThis() {
+  if (!currentIdea) return;
+  const msg = `"${currentIdea.title}" 앱을 만들어줘.\n설명: ${currentIdea.tagline}\n핵심 기능: ${currentIdea.features.join(', ')}`;
+  navigator.clipboard.writeText(msg).catch(() => {});
+  alert('아이디어 내용이 복사되었습니다! Claude에 붙여넣기해서 만들어보세요.');
+}
+
+function saveIdea() {
+  if (!currentIdea) return;
+  const alreadySaved = savedIdeas.some(s => s.title === currentIdea.title);
+  if (alreadySaved) { alert('이미 저장된 아이디어입니다.'); return; }
+  savedIdeas.unshift({ ...currentIdea, savedAt: new Date().toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit' }) });
+  document.getElementById('save-btn').innerHTML = '<i class="ti ti-bookmark-filled"></i>';
+  renderSaved();
+}
+
+function renderSaved() {
+  if (savedIdeas.length === 0) {
+    document.getElementById('saved-section').style.display = 'none';
+    return;
+  }
+  document.getElementById('saved-section').style.display = 'block';
+  document.getElementById('saved-header').textContent = `저장된 아이디어 (${savedIdeas.length})`;
+  document.getElementById('saved-list').innerHTML = savedIdeas.map((idea, i) => {
+    const catInfo = categoryMap[idea.category] || categoryMap.tools;
+    return `<div class="saved-item" onclick="restoreIdea(${i})">
+      <div class="saved-item-left">
+        <span class="badge" style="background:${catInfo.bg};color:${catInfo.color};font-size:11px;">${catInfo.label}</span>
+        <span class="saved-item-name">${idea.title}</span>
+      </div>
+      <span class="saved-time">${idea.savedAt}</span>
+    </div>`;
+  }).join('');
+}
+
+function restoreIdea(i) {
+  currentIdea = savedIdeas[i];
+  renderIdea(currentIdea);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
